@@ -20,14 +20,6 @@ tools = [
         description="use this tool if you are asked about finding gene ontology."
         "enrichment annotations, go terms, gene ontology.",
     ),
-    # MyTool(
-    #     name="gene_protein_name_tool",
-    #     func=nl_gene_protein_name_tool,
-    #     description="use this tool if you are asked to find gene and protein names in a"
-    #     " sentence. NEVER USE IT IF YOU ARE ASKED FOR A GENE ALIAS OR THE OFFICIAL "
-    #     "GENE SYMBOL OF A GENE, ONLY USE IT IF YOU ARE EXPLICITLY ASKED TO EXTRACT "
-    #     "A GENE NAME OR PROTEIN NAME OUT OF A SENTENCE OR TEXT!!!!",
-    # ),
     MyTool(
         name="blast_tool",
         func=blast_tool,
@@ -52,17 +44,33 @@ function_mapping = {
     "blast_tool": blast_tool,
     "BLAT_tool": BLAT_tool,
     "mygenetool": go_nl_query_tool,
-    # "gene_protein_name_tool": nl_gene_protein_name_tool,
 }
 
-
-def baio_agent(question: str, llm, embedding):
+def baio_agent(question: str, llm, embedding=None):
+    """
+    BAIO agent that selects and executes the appropriate tool based on the question.
+    
+    Args:
+        question (str): The user's question or query
+        llm: The language model to use
+        embedding: Optional embedding model for tools that require it
+        
+    Returns:
+        str: The answer or error message
+    """
     print("In Baio agent...\nSelecting tool...")
     selected_tool = select_best_fitting_tool(question, tools, llm)
     print(f"Selected tool: {selected_tool.name}")
     selected_tool = function_mapping.get(selected_tool.name)
+    
     try:
-        answer = selected_tool(question, llm, embedding)  # type: ignore
+        # Check if tool requires embeddings
+        if selected_tool in [blast_tool, eutils_tool]:
+            if embedding is None:
+                raise ValueError(f"{selected_tool.__name__} requires embeddings")
+            answer = selected_tool(question, llm, embedding)
+        else:
+            answer = selected_tool(question, llm)
         print(answer)
         return answer
     except Exception as e:
