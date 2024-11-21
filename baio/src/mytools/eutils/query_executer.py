@@ -18,7 +18,9 @@ def execute_eutils_api_call(request_data: Union[EutilsAPIRequest, EfetchRequest]
     default_headers = {"Content-Type": "application/json"}
     default_method = "GET"
 
-    if isinstance(request_data, EfetchRequest):
+    print(isinstance(request_data, EfetchRequest))
+
+    if isinstance(request_data, EfetchRequest) or isinstance(request_data, EutilsAPIRequest):
         if request_data.db == "gene":
             print("FETCHING")
             # print(request_data)

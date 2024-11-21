@@ -1,16 +1,7 @@
-import pytest
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings
 from baio.src.agents import baio_agent, aniseed_agent
 import os
-
-@pytest.fixture
-def openai_api_key():
-    """Fixture to get OpenAI API key from environment"""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        pytest.skip("OPENAI_API_KEY environment variable not set")
-    return api_key
 
 def test_baio_functionality(openai_api_key: str):
     """
@@ -67,6 +58,8 @@ def test_baio_functionality(openai_api_key: str):
     return results
 
 if __name__ == "__main__":
+    import os
+    
     # Get API key from environment variable
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -74,7 +67,11 @@ if __name__ == "__main__":
         exit(1)
     
     # Run tests
-    results = test_baio_functionality(api_key)
+    #results = test_baio_functionality(api_key)
+
+    result = baio_agent(question = "What genes are expressed between stage 1 and 3 in ciona robusta?",
+                        llm = ChatOpenAI(model="gpt-4o", temperature=0.3, api_key=api_key),
+                        embedding = OpenAIEmbeddings(api_key=api_key))
     
     # Print summary
     print("\nTest Summary:")
@@ -82,3 +79,6 @@ if __name__ == "__main__":
         print(f"\n{test_name}:")
         print(f"Status: {result['status']}")
         if result['status'] == 'Success':
+            print(f"Result: {result['result']}")
+        else:
+            print(f"Error: {result['error']}")
